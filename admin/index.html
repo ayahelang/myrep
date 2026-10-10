@@ -7,92 +7,220 @@
   <meta name="robots" content="noindex, nofollow" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    :root { --red: #E31E24; --bg: #0c0c0c; --card: #161616; --muted: #9ca3af; }
+    :root {
+      --purple: #7C3AED;
+      --blue: #2563EB;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --black: #1e1b4b;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Inter, system-ui, sans-serif; background: var(--bg); color: #fff; min-height: 100vh; padding: 24px; }
-    .container { max-width: 960px; margin: 0 auto; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--black);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
     h1 { font-size: 1.6rem; margin-bottom: 8px; }
-    .subtitle { color: var(--muted); margin-bottom: 32px; font-size: 0.95rem; }
-    .card { background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
-    .card h2 { font-size: 1.15rem; margin-bottom: 12px; }
+    .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.06);
+    }
+    .card h2 { font-size: 1.1rem; margin-bottom: 12px; }
     .card p, .card li { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
     .card ul { padding-left: 20px; margin: 12px 0; }
-    .card a { color: var(--red); font-weight: 600; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--red); color: white; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none; margin-top: 12px; border: none; cursor: pointer; font-size: 0.95rem; }
-    .btn:hover { opacity: 0.9; }
-    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); }
-    code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
-    .login-box { max-width: 400px; margin: 80px auto; text-align: center; }
-    .login-box input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #1a1a1a; color: white; margin: 12px 0; font-size: 1rem; }
-    .hidden { display: none; }
+    .card a { color: var(--purple); font-weight: 600; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      color: white;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn:hover { opacity: 0.92; }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--black);
+    }
+    .btn-outline:hover { border-color: var(--purple); color: var(--purple); }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+    .btn-success { background: #16a34a; }
+    .btn-warn { background: #d97706; }
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .login-box {
+      max-width: 400px;
+      margin: 80px auto;
+      text-align: center;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--black);
+      margin: 12px 0;
+      font-size: 1rem;
+    }
+    .hidden { display: none !important; }
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    th { color: var(--muted); font-weight: 600; }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
+    .status {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-baru { background: #fef3c7; color: #b45309; }
+    .status-proses { background: #dbeafe; color: #1d4ed8; }
+    .status-selesai { background: #dcfce7; color: #15803d; }
+    .status-batal { background: #fee2e2; color: #b91c1c; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-box .num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-box .label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .filter-bar button.active {
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      color: white;
+      border-color: transparent;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Login Gate (simple) -->
+    <!-- Login Gate -->
     <div id="loginScreen" class="login-box">
       <h1>🔐 Admin Panel</h1>
       <p class="subtitle">MyRepublic Order Management</p>
       <input type="password" id="adminPass" placeholder="Masukkan password admin" />
       <button class="btn" id="loginBtn" style="width:100%">Masuk</button>
       <p style="margin-top:16px;font-size:0.8rem;color:var(--muted)">
-        Atau login dengan Google (admin@silverhawk.web.id) setelah setup Firebase/Auth.
+        Atau login Google di halaman utama dengan akun<br>
+        <strong>admin@silverhawk.web.id</strong> / <strong>ted834r@gmail.com</strong>
       </p>
+      <a href="../" class="btn btn-outline" style="margin-top:16px;display:inline-flex">← Kembali ke Situs</a>
     </div>
 
     <!-- Dashboard -->
     <div id="dashboard" class="hidden">
-      <h1>📋 Panel Admin — Pesanan MyRepublic</h1>
-      <p class="subtitle">Kelola pesanan pelanggan dari myrep.silverhawk.web.id</p>
+      <div class="header-row">
+        <div>
+          <h1>📋 Panel Admin — Pesanan MyRepublic</h1>
+          <p class="subtitle" style="margin-bottom:0">Kelola pesanan pelanggan dari myrep.silverhawk.web.id</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="../" class="btn btn-outline">← Situs</a>
+          <button class="btn btn-outline" id="logoutBtn">Keluar</button>
+        </div>
+      </div>
+
+      <div class="stats" id="statsRow">
+        <div class="stat-box"><div class="num" id="statTotal">0</div><div class="label">Total Pesanan</div></div>
+        <div class="stat-box"><div class="num" id="statBaru">0</div><div class="label">Belum Ditindaklanjuti</div></div>
+        <div class="stat-box"><div class="num" id="statProses">0</div><div class="label">Sedang Proses</div></div>
+        <div class="stat-box"><div class="num" id="statSelesai">0</div><div class="label">Sudah Selesai</div></div>
+      </div>
 
       <div class="card">
-        <h2>Cara Kerja Saat Ini</h2>
-        <p>Karena situs di-deploy di <strong>GitHub Pages</strong> (static hosting), sistem order menggunakan kombinasi:</p>
+        <h2>Daftar Pesanan</h2>
+        <div class="filter-bar">
+          <button class="btn btn-outline btn-sm active" data-filter="all">Semua</button>
+          <button class="btn btn-outline btn-sm" data-filter="Baru">Belum Ditindaklanjuti</button>
+          <button class="btn btn-outline btn-sm" data-filter="Proses">Proses</button>
+          <button class="btn btn-outline btn-sm" data-filter="Selesai">Selesai</button>
+        </div>
+        <div id="ordersTableWrap">
+          <div class="empty" id="emptyState">Belum ada pesanan. Pesanan dari form akan muncul di sini.</div>
+          <table id="ordersTable" class="hidden">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Nama</th>
+                <th>WA</th>
+                <th>Paket</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Cara Kerja</h2>
         <ul>
-          <li><strong>WhatsApp Deep Link</strong> — langsung mengirim data pesanan ke nomor 08515-9922-358</li>
-          <li><strong>Google Sheets + Apps Script</strong> (opsional) — menyimpan data ke spreadsheet & kirim notifikasi email</li>
+          <li>Pesanan dari form disimpan di <strong>localStorage</strong> browser (untuk preview admin) + dikirim ke WhatsApp.</li>
+          <li>Opsional: setup Google Sheets + Apps Script agar data tersimpan permanen & notifikasi email.</li>
+          <li>Ubah status pesanan di sini (Baru → Proses → Selesai).</li>
         </ul>
+        <a class="btn btn-outline" href="https://docs.google.com/spreadsheets/" target="_blank" style="margin-top:12px">Buka Google Sheets</a>
       </div>
-
-      <div class="card">
-        <h2>1. Setup Google Sheet (Database Gratis)</h2>
-        <ol style="padding-left:20px;color:var(--muted);font-size:0.9rem;line-height:1.8">
-          <li>Buat Google Sheet baru, beri nama <code>MyRep Orders</code></li>
-          <li>Buat header di baris 1: <code>Timestamp | Nama | Alamat | Email | WA | Paket | Catatan | Status</code></li>
-          <li>Buka <strong>Extensions → Apps Script</strong></li>
-          <li>Paste kode dari file <code>apps-script.js</code> (ada di folder ini)</li>
-          <li>Deploy sebagai <strong>Web App</strong> → Execute as: Me → Who has access: Anyone</li>
-          <li>Copy URL Web App, lalu paste ke <code>js/app.js</code> bagian <code>APPS_SCRIPT_URL</code></li>
-        </ol>
-        <a class="btn btn-outline" href="https://sheets.google.com" target="_blank">Buka Google Sheets</a>
-      </div>
-
-      <div class="card">
-        <h2>2. Notifikasi</h2>
-        <ul>
-          <li><strong>WhatsApp</strong>: Otomatis terbuka saat pelanggan submit (ke nomor Teddy)</li>
-          <li><strong>Email</strong>: Apps Script bisa kirim email ke <code>admin@silverhawk.web.id</code> setiap ada order baru</li>
-          <li><strong>WA Admin</strong>: Bisa ditambahkan via CallMeBot / WA API berbayar, atau cukup pantau WA pribadi</li>
-        </ul>
-      </div>
-
-      <div class="card">
-        <h2>3. Lihat Pesanan</h2>
-        <p>Setelah setup Sheet + Apps Script, pesanan akan muncul di spreadsheet. Anda juga bisa publish Sheet sebagai CSV dan load di sini.</p>
-        <p style="margin-top:12px">Untuk login Google penuh (admin@silverhawk.web.id), disarankan menggunakan Firebase Authentication (gratis) + Firestore, atau cukup proteksi password sederhana seperti halaman ini.</p>
-        <a class="btn" href="https://docs.google.com/spreadsheets/" target="_blank">Buka Spreadsheet Pesanan</a>
-      </div>
-
-      <div class="card">
-        <h2>Password Default</h2>
-        <p>Password sementara halaman ini: <code>myrep2026</code></p>
-        <p style="margin-top:8px;font-size:0.85rem">Ubah di file <code>admin/admin.js</code> jika perlu.</p>
-      </div>
-
-      <button class="btn btn-outline" id="logoutBtn" style="margin-top:12px">Keluar</button>
     </div>
   </div>
 
