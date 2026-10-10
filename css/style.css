@@ -257,8 +257,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   justify-content: center;
 }
 .rocket-card {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: linear-gradient(160deg, #ffffff 0%, #faf5ff 45%, #ede9fe 100%);
+  border: 1px solid rgba(124,58,237,0.18);
   border-radius: 24px;
   padding: 32px;
   width: 100%;
@@ -298,20 +298,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 20px;
 }
 .benefit-card {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: linear-gradient(160deg, #faf5ff 0%, #f5f3ff 50%, #eef2ff 100%);
+  border: 1px solid rgba(124,58,237,0.15);
   border-radius: var(--radius);
   padding: 28px 24px;
   transition: 0.3s var(--ease);
 }
 .benefit-card:hover {
-  border-color: rgba(124,58,237,0.35);
+  border-color: rgba(124,58,237,0.4);
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(124,58,237,0.1);
+  box-shadow: 0 12px 30px rgba(124,58,237,0.14);
+  background: linear-gradient(160deg, #f3e8ff 0%, #ede9fe 50%, #e0e7ff 100%);
 }
 .benefit-icon {
   width: 48px; height: 48px;
-  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(37,99,235,0.12));
+  background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(37,99,235,0.15));
   border-radius: 12px;
   display: grid;
   place-items: center;
@@ -328,8 +329,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 24px;
 }
 .pkg-card {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: linear-gradient(165deg, #ffffff 0%, #faf5ff 40%, #f5f3ff 100%);
+  border: 1px solid rgba(124,58,237,0.14);
   border-radius: 20px;
   padding: 28px 24px;
   position: relative;
@@ -338,12 +339,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   flex-direction: column;
 }
 .pkg-card:hover {
-  border-color: rgba(124,58,237,0.4);
+  border-color: rgba(124,58,237,0.45);
   transform: translateY(-6px);
   box-shadow: var(--shadow);
+  background: linear-gradient(165deg, #faf5ff 0%, #f3e8ff 50%, #ede9fe 100%);
 }
 .pkg-card.popular {
   border-color: var(--purple);
+  background: linear-gradient(165deg, #f5f3ff 0%, #ede9fe 40%, #e0e7ff 100%);
   box-shadow: 0 0 0 1px var(--purple), var(--shadow);
 }
 .pkg-badge {
@@ -426,8 +429,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: linear-gradient(180deg, transparent, rgba(124,58,237,0.04));
 }
 .order-card {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: linear-gradient(165deg, #ffffff 0%, #faf5ff 50%, #f5f3ff 100%);
+  border: 1px solid rgba(124,58,237,0.16);
   border-radius: 24px;
   padding: 36px 32px;
   max-width: 640px;
@@ -575,8 +578,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ---------- SPEED TEST ---------- */
 .speedtest-card {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: linear-gradient(165deg, #ffffff 0%, #faf5ff 40%, #eef2ff 100%);
+  border: 1px solid rgba(124,58,237,0.16);
   border-radius: 24px;
   padding: 36px 28px;
   max-width: 520px;

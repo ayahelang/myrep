@@ -247,59 +247,116 @@ Mohon diproses. Terima kasih!`
     const barFill = document.getElementById('stBarFill');
     const progressText = document.getElementById('stProgressText');
 
-    const PING_URL = 'https://www.cloudflare.com/cdn-cgi/trace';
-    const DL_URLS = [
-      'https://speed.cloudflare.com/__down?bytes=1000000',
-      'https://speed.cloudflare.com/__down?bytes=5000000',
-      'https://speed.cloudflare.com/__down?bytes=10000000'
-    ];
-    const UL_URL = 'https://speed.cloudflare.com/__up';
+    // Cloudflare public speedtest endpoints (CORS-enabled, free)
+    const CF_DOWN = 'https://speed.cloudflare.com/__down?bytes=';
+    const CF_UP = 'https://speed.cloudflare.com/__up';
+    const PING_URL = 'https://speed.cloudflare.com/__down?bytes=0';
+    const DL_SIZES = [2000000, 5000000, 10000000]; // 2MB, 5MB, 10MB
+    const UL_SIZES = [1000000, 3000000, 5000000]; // 1MB, 3MB, 5MB
 
     function setProgress(pct, text) {
       barFill.style.width = pct + '%';
       progressText.textContent = text;
     }
 
+    function xhrGet(url) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response);
+          else reject(new Error('HTTP ' + xhr.status));
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send();
+      });
+    }
+
+    function xhrPost(url, body, onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        if (onProgress) {
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) onProgress(e.loaded, e.total);
+          };
+        }
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error('HTTP ' + xhr.status));
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(body);
+      });
+    }
+
     async function measurePing() {
       const samples = [];
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         const t0 = performance.now();
         try {
-          await fetch(PING_URL + '?_=' + Date.now(), { cache: 'no-store', mode: 'cors' });
+          await xhrGet(PING_URL + '&tid=' + Math.random());
           samples.push(performance.now() - t0);
-        } catch { samples.push(999); }
+        } catch {
+          samples.push(999);
+        }
       }
       samples.sort((a, b) => a - b);
-      return Math.round(samples[1] || samples[0]);
+      return Math.round(samples[Math.floor(samples.length / 2)]);
     }
 
     async function measureDownload() {
       let best = 0;
-      for (let i = 0; i < DL_URLS.length; i++) {
+      for (let i = 0; i < DL_SIZES.length; i++) {
+        const size = DL_SIZES[i];
         const t0 = performance.now();
         try {
-          const res = await fetch(DL_URLS[i] + '&_=' + Date.now(), { cache: 'no-store', mode: 'cors' });
-          const buf = await res.arrayBuffer();
+          const buf = await xhrGet(CF_DOWN + size + '&tid=' + Math.random());
           const ms = performance.now() - t0;
-          const mbps = (buf.byteLength * 8 / (ms / 1000)) / 1e6;
+          const bytes = buf.byteLength || size;
+          const mbps = (bytes * 8 / (ms / 1000)) / 1e6;
           if (mbps > best) best = mbps;
-          setProgress(20 + (i + 1) * 20, 'Download… ' + mbps.toFixed(1) + ' Mbps');
+          setProgress(15 + (i + 1) * 18, 'Download… ' + mbps.toFixed(1) + ' Mbps');
           elVal.textContent = mbps.toFixed(1);
-        } catch (e) { console.warn(e); }
+        } catch (e) {
+          console.warn('DL fail', e);
+        }
       }
       return best;
     }
 
     async function measureUpload() {
-      const size = 1 * 1024 * 1024;
-      const data = new Uint8Array(size);
-      crypto.getRandomValues(data);
-      const t0 = performance.now();
-      try {
-        await fetch(UL_URL, { method: 'POST', body: data, cache: 'no-store', mode: 'cors' });
-        const ms = performance.now() - t0;
-        return (size * 8 / (ms / 1000)) / 1e6;
-      } catch { return 0; }
+      // Use XHR (not fetch) — required for reliable upload measurement + progress
+      let best = 0;
+      for (let i = 0; i < UL_SIZES.length; i++) {
+        const size = UL_SIZES[i];
+        // Random-ish payload so compression doesn't skew results
+        const payload = new Uint8Array(size);
+        for (let j = 0; j < size; j += 4096) {
+          payload[j] = (Math.random() * 256) | 0;
+        }
+        const t0 = performance.now();
+        try {
+          await xhrPost(CF_UP + '?tid=' + Math.random(), payload, (loaded) => {
+            const elapsed = (performance.now() - t0) / 1000;
+            if (elapsed > 0.05) {
+              const live = (loaded * 8 / elapsed) / 1e6;
+              elVal.textContent = live.toFixed(1);
+              setProgress(70 + (i + 1) * 8, 'Upload… ' + live.toFixed(1) + ' Mbps');
+            }
+          });
+          const ms = performance.now() - t0;
+          const mbps = (size * 8 / (ms / 1000)) / 1e6;
+          if (mbps > best) best = mbps;
+          setProgress(70 + (i + 1) * 8, 'Upload… ' + mbps.toFixed(1) + ' Mbps');
+          elVal.textContent = mbps.toFixed(1);
+        } catch (e) {
+          console.warn('UL fail', e);
+        }
+      }
+      return best;
     }
 
     btn.addEventListener('click', async () => {
@@ -314,17 +371,23 @@ Mohon diproses. Terima kasih!`
       try {
         const ping = await measurePing();
         elPing.textContent = ping + ' ms';
-        setProgress(15, 'Ping: ' + ping + ' ms');
+        setProgress(12, 'Ping: ' + ping + ' ms');
+
         elLabel.textContent = 'Download';
         const down = await measureDownload();
         elDown.textContent = down.toFixed(1) + ' Mbps';
         elVal.textContent = down.toFixed(1);
-        setProgress(80, 'Mengukur upload…');
+        setProgress(68, 'Mengukur upload…');
+
         elLabel.textContent = 'Upload';
         const up = await measureUpload();
         elUp.textContent = (up > 0 ? up.toFixed(1) : 'N/A') + ' Mbps';
+        if (up > 0) elVal.textContent = up.toFixed(1);
+
         setProgress(100, 'Selesai!');
         elLabel.textContent = 'Selesai';
+        // Show download as main gauge after done (standard UX)
+        elVal.textContent = down.toFixed(1);
       } catch (err) {
         console.error(err);
         elLabel.textContent = 'Gagal';
