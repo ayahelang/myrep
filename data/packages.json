@@ -1,0 +1,61 @@
+{
+  "packages": [
+    {
+      "id": "ringan-a",
+      "name": "RINGAN A",
+      "speed": "30 Mbps",
+      "price": 116550,
+      "priceDisplay": "Rp 116.550",
+      "period": "/bulan",
+      "features": ["Internet Only", "Unlimited Kuota", "Fiber Optic", "Simetris 1:1"],
+      "badge": "Entry",
+      "popular": false
+    },
+    {
+      "id": "ringan-b",
+      "name": "RINGAN B",
+      "speed": "50 Mbps",
+      "price": 127650,
+      "priceDisplay": "Rp 127.650",
+      "period": "/bulan",
+      "features": ["Internet Only", "Unlimited Kuota", "Fiber Optic", "Simetris 1:1"],
+      "badge": "Popular",
+      "popular": true
+    },
+    {
+      "id": "pas",
+      "name": "PAS",
+      "speed": "75 Mbps",
+      "price": 138750,
+      "priceDisplay": "Rp 138.750",
+      "period": "/bulan",
+      "features": ["Internet Only", "Unlimited Kuota", "Fiber Optic", "Simetris 1:1"],
+      "badge": "Value",
+      "popular": false
+    },
+    {
+      "id": "economis",
+      "name": "ECONOMIS",
+      "speed": "100 Mbps",
+      "price": 166500,
+      "priceDisplay": "Rp 166.500",
+      "period": "/bulan",
+      "features": ["Internet Only", "Unlimited Kuota", "Fiber Optic", "Simetris 1:1"],
+      "badge": "Best Value",
+      "popular": false
+    }
+  ],
+  "contact": {
+    "salesName": "Teddy Mulyana",
+    "wa": "6285159922358",
+    "waDisplay": "08515-9922-358",
+    "agentName": "ARI",
+    "agentWa": "6287887259733"
+  },
+  "benefits": [
+    "Internet Simetris 1:1 (Upload = Download)",
+    "Tanpa Batasan Kuota (Unlimited)",
+    "Tahan Cuaca Ekstrim — 100% Fiber Optic",
+    "Internet Stabil & Harga Terjangkau"
+  ]
+}

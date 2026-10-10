@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — MyRepublic Orders</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --red: #E31E24; --bg: #0c0c0c; --card: #161616; --muted: #9ca3af; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; background: var(--bg); color: #fff; min-height: 100vh; padding: 24px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin-bottom: 8px; }
+    .subtitle { color: var(--muted); margin-bottom: 32px; font-size: 0.95rem; }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
+    .card h2 { font-size: 1.15rem; margin-bottom: 12px; }
+    .card p, .card li { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+    .card ul { padding-left: 20px; margin: 12px 0; }
+    .card a { color: var(--red); font-weight: 600; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--red); color: white; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none; margin-top: 12px; border: none; cursor: pointer; font-size: 0.95rem; }
+    .btn:hover { opacity: 0.9; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); }
+    code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+    .login-box { max-width: 400px; margin: 80px auto; text-align: center; }
+    .login-box input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #1a1a1a; color: white; margin: 12px 0; font-size: 1rem; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    th { color: var(--muted); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Gate (simple) -->
+    <div id="loginScreen" class="login-box">
+      <h1>🔐 Admin Panel</h1>
+      <p class="subtitle">MyRepublic Order Management</p>
+      <input type="password" id="adminPass" placeholder="Masukkan password admin" />
+      <button class="btn" id="loginBtn" style="width:100%">Masuk</button>
+      <p style="margin-top:16px;font-size:0.8rem;color:var(--muted)">
+        Atau login dengan Google (admin@silverhawk.web.id) setelah setup Firebase/Auth.
+      </p>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden">
+      <h1>📋 Panel Admin — Pesanan MyRepublic</h1>
+      <p class="subtitle">Kelola pesanan pelanggan dari myrep.silverhawk.web.id</p>
+
+      <div class="card">
+        <h2>Cara Kerja Saat Ini</h2>
+        <p>Karena situs di-deploy di <strong>GitHub Pages</strong> (static hosting), sistem order menggunakan kombinasi:</p>
+        <ul>
+          <li><strong>WhatsApp Deep Link</strong> — langsung mengirim data pesanan ke nomor 08515-9922-358</li>
+          <li><strong>Google Sheets + Apps Script</strong> (opsional) — menyimpan data ke spreadsheet & kirim notifikasi email</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>1. Setup Google Sheet (Database Gratis)</h2>
+        <ol style="padding-left:20px;color:var(--muted);font-size:0.9rem;line-height:1.8">
+          <li>Buat Google Sheet baru, beri nama <code>MyRep Orders</code></li>
+          <li>Buat header di baris 1: <code>Timestamp | Nama | Alamat | Email | WA | Paket | Catatan | Status</code></li>
+          <li>Buka <strong>Extensions → Apps Script</strong></li>
+          <li>Paste kode dari file <code>apps-script.js</code> (ada di folder ini)</li>
+          <li>Deploy sebagai <strong>Web App</strong> → Execute as: Me → Who has access: Anyone</li>
+          <li>Copy URL Web App, lalu paste ke <code>js/app.js</code> bagian <code>APPS_SCRIPT_URL</code></li>
+        </ol>
+        <a class="btn btn-outline" href="https://sheets.google.com" target="_blank">Buka Google Sheets</a>
+      </div>
+
+      <div class="card">
+        <h2>2. Notifikasi</h2>
+        <ul>
+          <li><strong>WhatsApp</strong>: Otomatis terbuka saat pelanggan submit (ke nomor Teddy)</li>
+          <li><strong>Email</strong>: Apps Script bisa kirim email ke <code>admin@silverhawk.web.id</code> setiap ada order baru</li>
+          <li><strong>WA Admin</strong>: Bisa ditambahkan via CallMeBot / WA API berbayar, atau cukup pantau WA pribadi</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>3. Lihat Pesanan</h2>
+        <p>Setelah setup Sheet + Apps Script, pesanan akan muncul di spreadsheet. Anda juga bisa publish Sheet sebagai CSV dan load di sini.</p>
+        <p style="margin-top:12px">Untuk login Google penuh (admin@silverhawk.web.id), disarankan menggunakan Firebase Authentication (gratis) + Firestore, atau cukup proteksi password sederhana seperti halaman ini.</p>
+        <a class="btn" href="https://docs.google.com/spreadsheets/" target="_blank">Buka Spreadsheet Pesanan</a>
+      </div>
+
+      <div class="card">
+        <h2>Password Default</h2>
+        <p>Password sementara halaman ini: <code>myrep2026</code></p>
+        <p style="margin-top:8px;font-size:0.85rem">Ubah di file <code>admin/admin.js</code> jika perlu.</p>
+      </div>
+
+      <button class="btn btn-outline" id="logoutBtn" style="margin-top:12px">Keluar</button>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
