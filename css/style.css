@@ -715,3 +715,53 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .float-stats { font-size: 0.7rem; padding: 10px 12px; bottom: 90px; left: 12px; }
   .float-wa { bottom: 16px; right: 16px; width: 50px; height: 50px; }
 }
+
+/* ---------- FLOATING AUTO-SCROLL TOGGLE ---------- */
+.float-autoscroll {
+  position: fixed;
+  bottom: 100px;
+  left: 24px;
+  z-index: 91;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(124,58,237,0.15);
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(100,116,139,0.55);
+  cursor: pointer;
+  opacity: 0.45;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.06);
+  transition: opacity 0.3s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.float-autoscroll:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.95);
+  color: var(--muted);
+  border-color: rgba(124,58,237,0.25);
+  box-shadow: 0 8px 24px rgba(124,58,237,0.12);
+}
+.float-autoscroll.active {
+  opacity: 0.85;
+  background: linear-gradient(135deg, rgba(124,58,237,0.9), rgba(37,99,235,0.9));
+  color: #fff;
+  border-color: transparent;
+}
+.float-autoscroll.active:hover {
+  opacity: 1;
+}
+.ast-icon { font-size: 0.95rem; line-height: 1; }
+
+@media (max-width: 480px) {
+  .float-autoscroll {
+    bottom: 160px;
+    left: 12px;
+    padding: 7px 12px;
+    font-size: 0.7rem;
+  }
+}

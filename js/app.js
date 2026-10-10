@@ -490,13 +490,22 @@ Mohon diproses. Terima kasih!`
     } catch {}
   }
 
-  // ---------- Auto-scroll when idle 5 seconds ----------
+  // ---------- Auto-scroll: default idle 15–30s random; aggressive mode 5s ----------
   function initAutoScroll() {
     let idleTimer = null;
     let scrolling = false;
     let rafId = null;
-    const IDLE_MS = 5000;
-    const SPEED = 1.2; // px per frame (~72px/s at 60fps) — wajar
+    let aggressive = false; // true = idle 5s, false = 15–30s random
+    const SPEED = 1.2;
+    const AGGRESSIVE_IDLE = 5000;
+
+    function randomIdle() {
+      return 15000 + Math.floor(Math.random() * 15001); // 15–30s
+    }
+
+    function currentIdle() {
+      return aggressive ? AGGRESSIVE_IDLE : randomIdle();
+    }
 
     function stopScroll() {
       scrolling = false;
@@ -511,11 +520,9 @@ Mohon diproses. Terima kasih!`
         if (!scrolling) return;
         const y = window.scrollY || window.pageYOffset;
         if (y >= maxY - 2) {
-          // sampai bawah → pause sebentar lalu naik ke atas
           stopScroll();
           setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            // restart idle cycle after returning to top
             resetIdle();
           }, 1800);
           return;
@@ -529,15 +536,36 @@ Mohon diproses. Terima kasih!`
     function resetIdle() {
       stopScroll();
       clearTimeout(idleTimer);
-      idleTimer = setTimeout(startScroll, IDLE_MS);
+      idleTimer = setTimeout(startScroll, currentIdle());
+    }
+
+    // Floating toggle button
+    const toggleBtn = document.getElementById('autoScrollToggle');
+    function updateToggleUI() {
+      if (!toggleBtn) return;
+      toggleBtn.classList.toggle('active', aggressive);
+      toggleBtn.setAttribute('aria-pressed', aggressive ? 'true' : 'false');
+      toggleBtn.title = aggressive
+        ? 'Auto-scroll agresif ON (idle 5 dtk) — klik untuk matikan'
+        : 'Auto-scroll normal (idle 15–30 dtk) — klik untuk mode agresif 5 dtk';
+      const label = toggleBtn.querySelector('.ast-label');
+      if (label) label.textContent = aggressive ? 'Auto 5s ON' : 'Auto scroll';
+    }
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        aggressive = !aggressive;
+        updateToggleUI();
+        resetIdle();
+      });
+      updateToggleUI();
     }
 
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'scroll'];
-    // Use passive; on scroll only reset if user-initiated (not our auto-scroll)
-    let userScrolling = false;
     events.forEach(evt => {
       window.addEventListener(evt, () => {
-        if (evt === 'scroll' && scrolling) return; // ignore our own scroll
+        if (evt === 'scroll' && scrolling) return;
         resetIdle();
       }, { passive: true });
     });
