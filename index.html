@@ -120,6 +120,48 @@
     </div>
   </section>
 
+
+  <!-- SPEED TEST (compact, near top) -->
+  <section class="section section-speedtest" id="speedtest">
+    <div class="speedtest-card speedtest-compact" id="speedtestCard">
+      <div class="speedtest-body">
+        <div class="speedtest-gauge" id="stGauge">
+          <svg class="gauge-svg" viewBox="0 0 120 70" aria-hidden="true">
+            <path class="gauge-track" d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke-width="8" stroke-linecap="round"/>
+            <path class="gauge-arc" id="stArc" d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/>
+          </svg>
+          <div class="gauge-needle" id="stNeedle"></div>
+          <div class="gauge-center">
+            <div class="speedtest-value" id="stValue">—</div>
+            <div class="speedtest-unit" id="stUnit">Mbps</div>
+          </div>
+          <div class="speedtest-label" id="stLabel">Siap diuji</div>
+        </div>
+        <div class="speedtest-side">
+          <div class="speedtest-metrics">
+            <div class="st-metric">
+              <span class="st-metric-label">Download</span>
+              <span class="st-metric-val" id="stDown">— Mbps</span>
+            </div>
+            <div class="st-metric">
+              <span class="st-metric-label">Upload</span>
+              <span class="st-metric-val" id="stUp">— Mbps</span>
+            </div>
+            <div class="st-metric">
+              <span class="st-metric-label">Ping</span>
+              <span class="st-metric-val" id="stPing">— ms</span>
+            </div>
+          </div>
+          <button type="button" class="speedtest-btn" id="stStartBtn">Mulai Speed Test</button>
+          <div class="speedtest-progress" id="stProgress" hidden>
+            <div class="st-bar"><div class="st-bar-fill" id="stBarFill"></div></div>
+            <span id="stProgressText">Mengukur…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- BENEFITS -->
   <section class="section" id="benefits">
     <div class="section-header">
@@ -157,42 +199,6 @@
       <p>Semua paket Internet Only — Unlimited & Fiber Optic. Khusus area tertentu.</p>
     </div>
     <div class="packages-grid" id="packagesGrid"></div>
-  </section>
-
-  <!-- SPEED TEST -->
-  <section class="section" id="speedtest">
-    <div class="section-header">
-      <h2>⚡ Speed Test Internet</h2>
-      <p>Uji kecepatan koneksi internet Anda sekarang — mirip speedtest.net</p>
-    </div>
-    <div class="speedtest-card" id="speedtestCard">
-      <div class="speedtest-body">
-        <div class="speedtest-gauge">
-          <div class="speedtest-value" id="stValue">—</div>
-          <div class="speedtest-unit" id="stUnit">Mbps</div>
-          <div class="speedtest-label" id="stLabel">Siap diuji</div>
-        </div>
-        <div class="speedtest-metrics">
-          <div class="st-metric">
-            <span class="st-metric-label">Download</span>
-            <span class="st-metric-val" id="stDown">— Mbps</span>
-          </div>
-          <div class="st-metric">
-            <span class="st-metric-label">Upload</span>
-            <span class="st-metric-val" id="stUp">— Mbps</span>
-          </div>
-          <div class="st-metric">
-            <span class="st-metric-label">Ping</span>
-            <span class="st-metric-val" id="stPing">— ms</span>
-          </div>
-        </div>
-        <button type="button" class="speedtest-btn" id="stStartBtn">Mulai Speed Test</button>
-        <div class="speedtest-progress" id="stProgress" hidden>
-          <div class="st-bar"><div class="st-bar-fill" id="stBarFill"></div></div>
-          <span id="stProgressText">Mengukur…</span>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ORDER -->
@@ -270,6 +276,7 @@
     <div class="fs-row">Minggu: <strong id="fsWeek">0</strong></div>
     <div class="fs-row">Bulan: <strong id="fsMonth">0</strong></div>
     <div class="fs-row">Tahun: <strong id="fsYear">0</strong></div>
+    <div class="fs-row">Total: <strong id="fsTotal">0</strong></div>
   </div>
 
   <script src="js/app.js"></script>

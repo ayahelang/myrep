@@ -259,6 +259,20 @@ Mohon diproses. Terima kasih!`
       progressText.textContent = text;
     }
 
+    function setNeedle(mbps) {
+      const needle = document.getElementById('stNeedle');
+      const arc = document.getElementById('stArc');
+      // Map 0–200 Mbps → -90deg … +90deg
+      const clamped = Math.max(0, Math.min(200, mbps || 0));
+      const deg = -90 + (clamped / 200) * 180;
+      if (needle) needle.style.transform = 'translateX(-50%) rotate(' + deg + 'deg)';
+      if (arc) {
+        const pct = (clamped / 200) * 100;
+        arc.style.strokeDasharray = pct + ' 100';
+      }
+    }
+
+
     function xhrGet(url) {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -320,6 +334,7 @@ Mohon diproses. Terima kasih!`
           if (mbps > best) best = mbps;
           setProgress(15 + (i + 1) * 18, 'Download… ' + mbps.toFixed(1) + ' Mbps');
           elVal.textContent = mbps.toFixed(1);
+          setNeedle(mbps);
         } catch (e) {
           console.warn('DL fail', e);
         }
@@ -344,6 +359,7 @@ Mohon diproses. Terima kasih!`
             if (elapsed > 0.05) {
               const live = (loaded * 8 / elapsed) / 1e6;
               elVal.textContent = live.toFixed(1);
+              setNeedle(live);
               setProgress(70 + (i + 1) * 8, 'Upload… ' + live.toFixed(1) + ' Mbps');
             }
           });
@@ -352,6 +368,7 @@ Mohon diproses. Terima kasih!`
           if (mbps > best) best = mbps;
           setProgress(70 + (i + 1) * 8, 'Upload… ' + mbps.toFixed(1) + ' Mbps');
           elVal.textContent = mbps.toFixed(1);
+          setNeedle(mbps);
         } catch (e) {
           console.warn('UL fail', e);
         }
@@ -363,6 +380,7 @@ Mohon diproses. Terima kasih!`
       btn.disabled = true;
       progress.hidden = false;
       elVal.textContent = '…';
+      setNeedle(0);
       elLabel.textContent = 'Mengukur…';
       elDown.textContent = '— Mbps';
       elUp.textContent = '— Mbps';
@@ -386,8 +404,8 @@ Mohon diproses. Terima kasih!`
 
         setProgress(100, 'Selesai!');
         elLabel.textContent = 'Selesai';
-        // Show download as main gauge after done (standard UX)
         elVal.textContent = down.toFixed(1);
+        setNeedle(down);
       } catch (err) {
         console.error(err);
         elLabel.textContent = 'Gagal';
@@ -401,7 +419,7 @@ Mohon diproses. Terima kasih!`
 
   // ---------- Visitor Stats (localStorage + session presence) ----------
   function initVisitorStats() {
-    const KEY = 'myrep_stats_v1';
+    const KEY = 'myrep_stats_v2';
     const ONLINE_KEY = 'myrep_online';
     const SESSION_ID = sessionStorage.getItem('myrep_sid') || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
     sessionStorage.setItem('myrep_sid', SESSION_ID);
@@ -428,66 +446,80 @@ Mohon diproses. Terima kasih!`
     try { stats = JSON.parse(localStorage.getItem(KEY) || '{}'); }
     catch { stats = {}; }
 
+    // Migrate from v1 if present
+    try {
+      const old = JSON.parse(localStorage.getItem('myrep_stats_v1') || 'null');
+      if (old && !stats.total) {
+        stats.day = Math.max(stats.day || 0, old.day || 0);
+        stats.week = Math.max(stats.week || 0, old.week || 0);
+        stats.month = Math.max(stats.month || 0, old.month || 0);
+        stats.year = Math.max(stats.year || 0, old.year || 0, old.month || 0, old.week || 0, old.day || 0);
+        stats.total = Math.max(stats.total || 0, old.year || 0, old.month || 0, old.week || 0, old.day || 0);
+        stats.dayKey = old.dayKey || stats.dayKey;
+        stats.weekKey = old.weekKey || stats.weekKey;
+        stats.monthKey = old.monthKey || stats.monthKey;
+        stats.yearKey = old.yearKey || stats.yearKey;
+      }
+    } catch {}
+
     const t = today(), w = weekKey(), m = monthKey(), y = yearKey();
-    // Reset counters if period changed
     if (stats.dayKey !== t) { stats.day = 0; stats.dayKey = t; }
     if (stats.weekKey !== w) { stats.week = 0; stats.weekKey = w; }
     if (stats.monthKey !== m) { stats.month = 0; stats.monthKey = m; }
     if (stats.yearKey !== y) { stats.year = 0; stats.yearKey = y; }
 
-    // Count unique visit per day for this browser
+    // Ensure hierarchy: total >= year >= month >= week >= day
+    stats.total = stats.total || 0;
+    stats.year = Math.max(stats.year || 0, stats.month || 0, stats.week || 0, stats.day || 0);
+    stats.total = Math.max(stats.total, stats.year);
+
     const visitKey = 'visited_' + t;
     if (!sessionStorage.getItem(visitKey)) {
       stats.day = (stats.day || 0) + 1;
       stats.week = (stats.week || 0) + 1;
       stats.month = (stats.month || 0) + 1;
       stats.year = (stats.year || 0) + 1;
+      stats.total = (stats.total || 0) + 1;
+      // keep hierarchy
+      stats.year = Math.max(stats.year, stats.month);
+      stats.total = Math.max(stats.total, stats.year);
       sessionStorage.setItem(visitKey, '1');
+      localStorage.setItem(KEY, JSON.stringify(stats));
+    } else {
+      // Still persist hierarchy fixes
       localStorage.setItem(KEY, JSON.stringify(stats));
     }
 
-    // Online presence via localStorage heartbeat
     function heartbeat() {
       let online = {};
       try { online = JSON.parse(localStorage.getItem(ONLINE_KEY) || '{}'); } catch {}
       const now = Date.now();
-      // purge stale (>45s)
       Object.keys(online).forEach(id => {
         if (now - online[id] > 45000) delete online[id];
       });
       online[SESSION_ID] = now;
       localStorage.setItem(ONLINE_KEY, JSON.stringify(online));
-      const count = Object.keys(online).length;
       const el = document.getElementById('fsOnline');
-      if (el) el.textContent = count;
+      if (el) el.textContent = Object.keys(online).length;
     }
 
     function renderStats() {
-      const d = document.getElementById('fsDay');
-      const wEl = document.getElementById('fsWeek');
-      const mEl = document.getElementById('fsMonth');
-      const yEl = document.getElementById('fsYear');
-      if (d) d.textContent = stats.day || 0;
-      if (wEl) wEl.textContent = stats.week || 0;
-      if (mEl) mEl.textContent = stats.month || 0;
-      if (yEl) yEl.textContent = stats.year || 0;
+      const map = {
+        fsDay: stats.day || 0,
+        fsWeek: stats.week || 0,
+        fsMonth: stats.month || 0,
+        fsYear: stats.year || 0,
+        fsTotal: stats.total || 0
+      };
+      Object.keys(map).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = map[id];
+      });
     }
 
     renderStats();
     heartbeat();
     setInterval(heartbeat, 15000);
-
-    // Also try free counter API for global-ish total (optional, non-blocking)
-    try {
-      fetch('https://api.counterapi.dev/v1/myrep-silverhawk/visits/up', { mode: 'cors' })
-        .then(r => r.json())
-        .then(data => {
-          if (data && data.count) {
-            // keep local period stats; API is bonus total
-          }
-        })
-        .catch(() => {});
-    } catch {}
   }
 
   // ---------- Auto-scroll: default idle 15–30s random; aggressive mode 5s ----------
