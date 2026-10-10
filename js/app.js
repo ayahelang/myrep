@@ -420,16 +420,20 @@ Mohon diproses. Terima kasih!`
       const d = new Date();
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     }
+    function yearKey() {
+      return String(new Date().getFullYear());
+    }
 
     let stats;
     try { stats = JSON.parse(localStorage.getItem(KEY) || '{}'); }
     catch { stats = {}; }
 
-    const t = today(), w = weekKey(), m = monthKey();
+    const t = today(), w = weekKey(), m = monthKey(), y = yearKey();
     // Reset counters if period changed
     if (stats.dayKey !== t) { stats.day = 0; stats.dayKey = t; }
     if (stats.weekKey !== w) { stats.week = 0; stats.weekKey = w; }
     if (stats.monthKey !== m) { stats.month = 0; stats.monthKey = m; }
+    if (stats.yearKey !== y) { stats.year = 0; stats.yearKey = y; }
 
     // Count unique visit per day for this browser
     const visitKey = 'visited_' + t;
@@ -437,6 +441,7 @@ Mohon diproses. Terima kasih!`
       stats.day = (stats.day || 0) + 1;
       stats.week = (stats.week || 0) + 1;
       stats.month = (stats.month || 0) + 1;
+      stats.year = (stats.year || 0) + 1;
       sessionStorage.setItem(visitKey, '1');
       localStorage.setItem(KEY, JSON.stringify(stats));
     }
@@ -461,9 +466,11 @@ Mohon diproses. Terima kasih!`
       const d = document.getElementById('fsDay');
       const wEl = document.getElementById('fsWeek');
       const mEl = document.getElementById('fsMonth');
+      const yEl = document.getElementById('fsYear');
       if (d) d.textContent = stats.day || 0;
       if (wEl) wEl.textContent = stats.week || 0;
       if (mEl) mEl.textContent = stats.month || 0;
+      if (yEl) yEl.textContent = stats.year || 0;
     }
 
     renderStats();

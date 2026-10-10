@@ -669,32 +669,47 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   bottom: 24px;
   left: 24px;
   z-index: 90;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(124,58,237,0.12);
   border-radius: 14px;
   padding: 12px 16px;
   font-size: 0.78rem;
-  color: var(--muted);
-  box-shadow: 0 8px 28px rgba(124,58,237,0.12);
+  color: rgba(100,116,139,0.55);
+  box-shadow: 0 4px 16px rgba(124,58,237,0.06);
   min-width: 130px;
   line-height: 1.6;
+  opacity: 0.45;
+  transition: opacity 0.3s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  cursor: default;
+}
+.float-stats:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.95);
+  color: var(--muted);
+  border-color: rgba(124,58,237,0.22);
+  box-shadow: 0 8px 28px rgba(124,58,237,0.14);
 }
 .fs-online {
   display: flex; align-items: center; gap: 6px;
-  font-weight: 600; color: var(--black); margin-bottom: 4px;
+  font-weight: 600; color: inherit; margin-bottom: 4px;
 }
+.float-stats:hover .fs-online { color: var(--black); }
 .fs-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: #22c55e;
   box-shadow: 0 0 6px #22c55e;
   animation: blink 1.5s infinite;
+  opacity: 0.6;
 }
+.float-stats:hover .fs-dot { opacity: 1; }
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
-.fs-row strong { color: var(--purple); font-weight: 700; }
+.fs-row strong { color: rgba(124,58,237,0.55); font-weight: 700; }
+.float-stats:hover .fs-row strong { color: var(--purple); }
 
 @media (max-width: 480px) {
   .float-stats { font-size: 0.7rem; padding: 10px 12px; bottom: 90px; left: 12px; }
