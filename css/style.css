@@ -572,3 +572,128 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .nav-links.open { display: flex; }
   .burger { display: flex; }
 }
+
+/* ---------- SPEED TEST ---------- */
+.speedtest-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px 28px;
+  max-width: 520px;
+  margin: 0 auto;
+  box-shadow: var(--shadow);
+}
+.speedtest-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+.speedtest-gauge {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(124,58,237,0.12), transparent 70%),
+              conic-gradient(from 0deg, var(--purple), var(--blue), var(--purple));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 0 40px rgba(124,58,237,0.2);
+}
+.speedtest-gauge::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--white);
+}
+.speedtest-value, .speedtest-unit, .speedtest-label { position: relative; z-index: 1; }
+.speedtest-value { font-size: 2.4rem; font-weight: 800; line-height: 1; color: var(--black); }
+.speedtest-unit { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+.speedtest-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+.speedtest-metrics { display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; }
+.st-metric { text-align: center; }
+.st-metric-label {
+  display: block; font-size: 0.75rem; color: var(--muted);
+  margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.st-metric-val { font-size: 1.15rem; font-weight: 700; color: var(--black); }
+.speedtest-btn {
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  color: white; font-weight: 700; padding: 14px 36px;
+  border-radius: 12px; border: none; cursor: pointer; font-size: 1rem;
+  transition: 0.25s; box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+}
+.speedtest-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,58,237,0.4); }
+.speedtest-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.speedtest-progress { width: 100%; max-width: 320px; text-align: center; }
+.st-bar {
+  height: 6px; background: var(--gray); border-radius: 999px;
+  overflow: hidden; margin-bottom: 8px;
+}
+.st-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--purple), var(--blue));
+  border-radius: 999px; transition: width 0.3s ease;
+}
+#stProgressText { font-size: 0.8rem; color: var(--muted); }
+
+/* ---------- FLOATING WA ---------- */
+.float-wa {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 90;
+  width: 56px; height: 56px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 24px rgba(37,211,102,0.45);
+  transition: 0.25s var(--ease);
+  animation: pulse-wa 2.5s infinite;
+}
+.float-wa:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(37,211,102,0.55); }
+@keyframes pulse-wa {
+  0%, 100% { box-shadow: 0 6px 24px rgba(37,211,102,0.45); }
+  50% { box-shadow: 0 6px 24px rgba(37,211,102,0.45), 0 0 0 12px rgba(37,211,102,0.15); }
+}
+
+/* ---------- FLOATING STATS ---------- */
+.float-stats {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 90;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  box-shadow: 0 8px 28px rgba(124,58,237,0.12);
+  min-width: 130px;
+  line-height: 1.6;
+}
+.fs-online {
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 600; color: var(--black); margin-bottom: 4px;
+}
+.fs-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.fs-row strong { color: var(--purple); font-weight: 700; }
+
+@media (max-width: 480px) {
+  .float-stats { font-size: 0.7rem; padding: 10px 12px; bottom: 90px; left: 12px; }
+  .float-wa { bottom: 16px; right: 16px; width: 50px; height: 50px; }
+}
