@@ -3,27 +3,51 @@
  * MyRepublic Promo — Google Apps Script (Database Gratis)
  * ============================================================
  *
- * SETUP:
- * 1. Buat Google Sheet baru (nama bebas, misal "MyRep Orders")
- * 2. Extensions → Apps Script → hapus kode default → paste SEMUA isi file ini
- * 3. Save (Ctrl+S)
- * 4. Deploy → New deployment → Type: Web app
- *    - Description: MyRep API
- *    - Execute as: Me
- *    - Who has access: Anyone
- * 5. Authorize → Copy URL Web App
- * 6. Paste URL tersebut ke js/app.js → konstanta APPS_SCRIPT_URL
- *    dan ke admin/admin.js → konstanta APPS_SCRIPT_URL
+ * KEAMANAN:
+ * - Email admin & API secret disimpan di Script Properties
+ *   (bukan di kode yang di-commit ke GitHub)
+ * - action=list & action=update WAJIB kirim parameter/key yang sama
+ * - action=order (form publik) tidak butuh key
  *
- * Sheet akan otomatis dibuat:
- *   - Orders   (pesanan)
- *   - Visitors (statistik pengunjung harian)
+ * SETUP PERTAMA KALI:
+ * 1. Paste script ini → Save
+ * 2. Di editor Apps Script: Project Settings (ikon roda gigi kiri)
+ *    → Script Properties → Add property:
+ *      ADMIN_EMAIL  = admin@silverhawk.web.id
+ *      API_SECRET   = (buat string acak panjang, misal dari https://randomkeygen.com)
+ * 3. Deploy → New deployment → Web app
+ *    Execute as: Me | Who has access: Anyone
+ * 4. Copy URL → paste ke js/app.js & admin/admin.js (APPS_SCRIPT_URL)
+ * 5. Simpan API_SECRET di password manager kamu.
+ *    Saat buka /admin/ kamu akan diminta memasukkan secret itu
+ *    (tidak disimpan di file GitHub).
  * ============================================================
  */
 
-const ADMIN_EMAIL = 'admin@silverhawk.web.id'; // ganti jika perlu
 const ORDERS_SHEET = 'Orders';
 const VISITORS_SHEET = 'Visitors';
+
+// ---------- Script Properties (rahasia, tidak di kode) ----------
+function getProp_(key) {
+  return PropertiesService.getScriptProperties().getProperty(key) || '';
+}
+
+function getAdminEmail_() {
+  return getProp_('ADMIN_EMAIL') || 'admin@silverhawk.web.id';
+}
+
+function getApiSecret_() {
+  return getProp_('API_SECRET') || '';
+}
+
+/** Validasi secret untuk endpoint admin (list / update) */
+function requireSecret_(provided) {
+  const secret = getApiSecret_();
+  // Jika belum di-set di Script Properties, izinkan (mode setup)
+  // Setelah API_SECRET diisi, semua list/update wajib cocok
+  if (!secret) return true;
+  return provided && String(provided) === String(secret);
+}
 
 // ---------- Helpers ----------
 function getOrCreateSheet_(name, headers) {
@@ -54,17 +78,28 @@ function generateId_() {
 // ---------- doPost ----------
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    const raw = e.postData && e.postData.contents ? e.postData.contents : '{}';
+    const data = JSON.parse(raw);
     const action = (data.action || 'order').toLowerCase();
 
     if (action === 'order') {
       return handleNewOrder_(data);
     }
     if (action === 'update') {
+      if (!requireSecret_(data.key)) {
+        return jsonResponse_({ status: 'error', message: 'Unauthorized' });
+      }
       return handleUpdateStatus_(data);
     }
     if (action === 'visitor') {
       return handleVisitor_(data);
+    }
+    if (action === 'auth') {
+      // Cek secret dari admin panel (tanpa menyimpan di GitHub)
+      if (requireSecret_(data.key)) {
+        return jsonResponse_({ status: 'ok', auth: true });
+      }
+      return jsonResponse_({ status: 'error', message: 'Invalid secret' });
     }
     return jsonResponse_({ status: 'error', message: 'Unknown action: ' + action });
   } catch (err) {
@@ -76,21 +111,30 @@ function doPost(e) {
 function doGet(e) {
   try {
     const action = (e.parameter.action || '').toLowerCase();
+    const key = e.parameter.key || '';
+
     if (action === 'list') {
+      if (!requireSecret_(key)) {
+        return jsonResponse_({ status: 'error', message: 'Unauthorized' });
+      }
       return handleListOrders_(e.parameter);
     }
     if (action === 'stats') {
+      // Stats pengunjung boleh publik (hanya angka agregat)
       return handleGetStats_();
     }
+    if (action === 'ping') {
+      return jsonResponse_({ status: 'ok', message: 'MyRepublic Order API is running' });
+    }
     return ContentService.createTextOutput(
-      'MyRepublic Order API is running. Use ?action=list or ?action=stats'
+      'MyRepublic Order API is running. Use ?action=ping'
     );
   } catch (err) {
     return jsonResponse_({ status: 'error', message: err.toString() });
   }
 }
 
-// ---------- Order: Create ----------
+// ---------- Order: Create (publik, tidak butuh key) ----------
 function handleNewOrder_(data) {
   const sheet = getOrCreateSheet_(ORDERS_SHEET, [
     'id', 'timestamp', 'name', 'wa', 'email', 'address', 'package', 'notes', 'status', 'source'
@@ -112,21 +156,24 @@ function handleNewOrder_(data) {
     data.source || 'myrep.silverhawk.web.id'
   ]);
 
-  // Email notifikasi
+  // Email notifikasi (alamat dari Script Properties)
   try {
-    const subject = '[MyRep Order] Pesanan Baru dari ' + (data.name || 'Pelanggan');
-    const body =
-      'Pesanan baru masuk dari website myrep.silverhawk.web.id\n\n' +
-      'ID      : ' + id + '\n' +
-      'Nama    : ' + (data.name || '-') + '\n' +
-      'WA      : ' + (data.wa || '-') + '\n' +
-      'Email   : ' + (data.email || '-') + '\n' +
-      'Alamat  : ' + (data.address || '-') + '\n' +
-      'Paket   : ' + (data.package || '-') + '\n' +
-      'Catatan : ' + (data.notes || '-') + '\n' +
-      'Waktu   : ' + ts + '\n\n' +
-      'Silakan follow-up via WhatsApp.';
-    MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+    const adminEmail = getAdminEmail_();
+    if (adminEmail) {
+      const subject = '[MyRep Order] Pesanan Baru dari ' + (data.name || 'Pelanggan');
+      const body =
+        'Pesanan baru masuk dari website myrep.silverhawk.web.id\n\n' +
+        'ID      : ' + id + '\n' +
+        'Nama    : ' + (data.name || '-') + '\n' +
+        'WA      : ' + (data.wa || '-') + '\n' +
+        'Email   : ' + (data.email || '-') + '\n' +
+        'Alamat  : ' + (data.address || '-') + '\n' +
+        'Paket   : ' + (data.package || '-') + '\n' +
+        'Catatan : ' + (data.notes || '-') + '\n' +
+        'Waktu   : ' + ts + '\n\n' +
+        'Silakan follow-up via WhatsApp.';
+      MailApp.sendEmail(adminEmail, subject, body);
+    }
   } catch (mailErr) {
     // jangan gagalkan order kalau email gagal
   }
@@ -134,7 +181,7 @@ function handleNewOrder_(data) {
   return jsonResponse_({ status: 'ok', id: id });
 }
 
-// ---------- Order: Update status ----------
+// ---------- Order: Update status (butuh key) ----------
 function handleUpdateStatus_(data) {
   if (!data.id || !data.status) {
     return jsonResponse_({ status: 'error', message: 'id and status required' });
@@ -149,14 +196,14 @@ function handleUpdateStatus_(data) {
   const ids = sheet.getRange(2, 1, last - 1, 1).getValues();
   for (let i = 0; i < ids.length; i++) {
     if (String(ids[i][0]) === String(data.id)) {
-      sheet.getRange(i + 2, 9).setValue(data.status); // kolom status = 9
+      sheet.getRange(i + 2, 9).setValue(data.status);
       return jsonResponse_({ status: 'ok', id: data.id, newStatus: data.status });
     }
   }
   return jsonResponse_({ status: 'error', message: 'Order not found: ' + data.id });
 }
 
-// ---------- Order: List ----------
+// ---------- Order: List (butuh key) ----------
 function handleListOrders_(params) {
   const sheet = getOrCreateSheet_(ORDERS_SHEET, [
     'id', 'timestamp', 'name', 'wa', 'email', 'address', 'package', 'notes', 'status', 'source'
@@ -181,12 +228,10 @@ function handleListOrders_(params) {
     };
   });
 
-  // filter by status if given
   if (params.status && params.status !== 'all') {
     orders = orders.filter(function (o) { return o.status === params.status; });
   }
 
-  // newest first
   orders.sort(function (a, b) {
     return new Date(b.timestamp) - new Date(a.timestamp);
   });
@@ -204,7 +249,6 @@ function handleVisitor_(data) {
   const dateKey = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd');
   const last = sheet.getLastRow();
 
-  // Cari baris hari ini
   let rowIdx = -1;
   if (last >= 2) {
     const dates = sheet.getRange(2, 1, last - 1, 1).getValues();
@@ -221,11 +265,9 @@ function handleVisitor_(data) {
   }
 
   if (rowIdx > 0) {
-    // increment day
     const cur = sheet.getRange(rowIdx, 2).getValue() || 0;
     sheet.getRange(rowIdx, 2).setValue(Number(cur) + 1);
   } else {
-    // baris baru untuk hari ini
     let prevTotal = 0;
     if (last >= 2) {
       prevTotal = Number(sheet.getRange(last, 6).getValue()) || 0;
@@ -234,7 +276,6 @@ function handleVisitor_(data) {
     rowIdx = sheet.getLastRow();
   }
 
-  // Recalculate week / month / year / total dari semua baris
   const all = sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).getValues();
   const weekStart = getWeekStart_(now);
   const monthKey = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM');
@@ -255,7 +296,6 @@ function handleVisitor_(data) {
     if (dStr.indexOf(yearKey) === 0) year += cnt;
   });
 
-  // update baris hari ini dengan angka agregat
   sheet.getRange(rowIdx, 2, 1, 5).setValues([[day, week, month, year, total]]);
 
   return jsonResponse_({

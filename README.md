@@ -4,85 +4,65 @@
 Situs pemasaran paket internet MyRepublic (Fiber Optic) dengan database gratis Google Sheets + Apps Script.
 
 ## Fitur
-- Landing page modern, responsif — **warna dasar putih, aksen ungu & biru**
-- Daftar paket dari `data/packages.json`
-- Form order → WhatsApp + simpan ke **Google Sheets**
-- Email notifikasi otomatis ke admin saat ada pesanan baru
-- **Login with Google** (ikon di navbar)
-  - Email admin → tombol jadi **Panel Admin**
-- Panel admin (`/admin/`) — baca & ubah status pesanan langsung dari Google Sheets
-- Statistik pengunjung (hari/minggu/bulan/tahun) tersimpan di Sheets
+- Landing page modern, responsif — putih + aksen ungu & biru
+- Form order → WhatsApp + **Google Sheets** + email notifikasi
+- Panel admin dilindungi **API_SECRET** (tidak disimpan di GitHub)
+- Statistik pengunjung di Sheets
 - Speed Test floating + auto-scroll idle
 
-## Brand Color
-- Putih (background)
-- Ungu: `#7C3AED`
-- Biru: `#2563EB`
+## Keamanan (penting)
+| Data | Di mana disimpan |
+|------|------------------|
+| `APPS_SCRIPT_URL` | `js/app.js` & `admin/admin.js` (boleh publik) |
+| `API_SECRET` | **Script Properties** saja + diisi manual saat login admin |
+| `ADMIN_EMAIL` | **Script Properties** saja |
+| Password hardcoded | **Dihapus** — diganti API_SECRET |
+
+Endpoint **list** & **update** menolak request tanpa `key` yang cocok dengan `API_SECRET`.  
+Form order (publik) tidak butuh key.
 
 ---
 
-## Setup Database (Google Sheets — Gratis) — WAJIB
+## Setup Database + Script Properties
 
-1. Buat **Google Sheet baru** (nama bebas, misal `MyRep Orders`)
-2. Buka **Extensions → Apps Script**
-3. Hapus kode default, lalu **paste seluruh isi** file `admin/apps-script.js`
-4. Klik **Save** (ikon disket)
-5. Klik **Deploy → New deployment**
-   - Type: **Web app**
-   - Description: `MyRep API`
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-6. Klik **Deploy** → Authorize (pilih akun Google kamu) → **Allow**
-7. **Copy URL** Web App (bentuknya `https://script.google.com/macros/s/xxxxx/exec`)
-8. Paste URL tersebut ke **dua tempat**:
-   - `js/app.js` → konstanta `APPS_SCRIPT_URL`
-   - `admin/admin.js` → konstanta `APPS_SCRIPT_URL`
+### 1. Google Sheet + Apps Script
+1. Buat Google Sheet baru  
+2. **Extensions → Apps Script** → paste isi `admin/apps-script.js` → Save  
+3. **Project Settings** (ikon roda gigi) → **Script Properties** → Add:
 
-Setelah itu, Sheet akan otomatis membuat tab **Orders** dan **Visitors**.
+   | Property | Value |
+   |----------|--------|
+   | `ADMIN_EMAIL` | `admin@silverhawk.web.id` (atau email kamu) |
+   | `API_SECRET` | string acak panjang (contoh: buat di randomkeygen.com) |
 
-### Email notifikasi
-Default mengirim ke `admin@silverhawk.web.id`.  
-Ganti di baris `const ADMIN_EMAIL = '...'` di dalam `apps-script.js` jika perlu.
+4. **Deploy → New deployment → Web app**  
+   - Execute as: **Me**  
+   - Who has access: **Anyone**  
+5. Authorize → copy URL Web App
+
+### 2. Isi URL di situs
+Paste URL ke:
+- `js/app.js` → `APPS_SCRIPT_URL`
+- `admin/admin.js` → `APPS_SCRIPT_URL`
+
+**Jangan** taruh `API_SECRET` di file ini.
+
+### 3. Login admin
+Buka `/admin/` → masukkan **API_SECRET** yang sama dengan Script Properties.  
+Secret hanya disimpan di `sessionStorage` browser (hilang saat tab ditutup).
 
 ---
 
-## Google Login (opsional, produksi)
-
-1. Buat OAuth 2.0 Client ID di [Google Cloud Console](https://console.cloud.google.com/) (type: Web)
-2. Authorized JavaScript origins: `https://myrep.silverhawk.web.id`
+## Google Login (opsional)
+1. OAuth 2.0 Client ID (Web) di Google Cloud Console  
+2. Authorized origins: `https://myrep.silverhawk.web.id`  
 3. Paste Client ID ke `js/app.js` → `GOOGLE_CLIENT_ID`
 
-Tanpa Client ID, mode demo: klik tombol → prompt email.
-
-Admin emails (bisa diubah di `js/app.js` & `admin/admin.js`):
-- `admin@silverhawk.web.id`
-- `ted834r@gmail.com`
-
-Password panel admin (fallback): `myrep2026`
-
 ---
 
-## Deploy ke GitHub Pages
+## Deploy GitHub Pages
+Upload isi folder ini ke repo. Custom domain sudah di `CNAME`.
 
-1. Upload **seluruh isi folder ini** (bukan folder pembungkus) ke repository GitHub
-2. Settings → Pages → Source: Deploy from branch `main` / `docs` atau root
-3. Custom domain: `myrep.silverhawk.web.id` (sudah ada file `CNAME`)
-
-Pastikan `APPS_SCRIPT_URL` sudah diisi sebelum atau sesudah deploy.
-
----
-
-## Struktur penting
-
-```
-├── index.html          # Landing page
-├── js/app.js           # Logika utama + order + visitor
-├── data/packages.json  # Daftar paket
-├── admin/
-│   ├── index.html      # Panel admin
-│   ├── admin.js        # Baca/update order dari Sheets
-│   └── apps-script.js  # Kode yang di-paste ke Google Apps Script
-└── css/style.css
-```
+Setelah ubah Apps Script, **Deploy lagi** (Manage deployments → Edit → New version) agar perubahan aktif.
 
 Powered by silverhawk.web.id

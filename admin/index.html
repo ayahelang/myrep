@@ -159,11 +159,12 @@
     <div id="loginScreen" class="login-box">
       <h1>🔐 Admin Panel</h1>
       <p class="subtitle">MyRepublic Order Management</p>
-      <input type="password" id="adminPass" placeholder="Masukkan password admin" />
+      <input type="password" id="adminPass" placeholder="Masukkan API_SECRET (Script Properties)" />
       <button class="btn" id="loginBtn" style="width:100%">Masuk</button>
       <p style="margin-top:16px;font-size:0.8rem;color:var(--muted)">
-        Atau login Google di halaman utama dengan akun<br>
-        <strong>admin@silverhawk.web.id</strong> / <strong>ted834r@gmail.com</strong>
+        Masukkan <strong>API_SECRET</strong> yang kamu set di<br>
+        Apps Script → Project Settings → Script Properties.<br>
+        Secret ini <em>tidak</em> disimpan di GitHub.
       </p>
       <a href="../" class="btn btn-outline" style="margin-top:16px;display:inline-flex">← Kembali ke Situs</a>
     </div>
@@ -173,7 +174,7 @@
       <div class="header-row">
         <div>
           <h1>📋 Panel Admin — Pesanan MyRepublic</h1>
-          <p class="subtitle" style="margin-bottom:0">Data tersimpan di Google Sheets (database gratis)</p>
+          <p class="subtitle" style="margin-bottom:0">Data di Google Sheets · akses dilindungi API_SECRET</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline" id="refreshBtn">↻ Refresh</button>
@@ -219,10 +220,10 @@
       <div class="card">
         <h2>Cara Kerja</h2>
         <ul>
-          <li>Pesanan dari form langsung disimpan ke <strong>Google Sheets</strong> + dikirim ke WhatsApp + email notifikasi.</li>
-          <li>Panel ini membaca & mengubah status langsung dari Sheets (bisa dibuka dari device mana saja).</li>
+          <li>Pesanan dari form → <strong>Google Sheets</strong> + WhatsApp + email notifikasi.</li>
+          <li>List &amp; update status dilindungi <strong>API_SECRET</strong> (Script Properties) — tidak ada di repo GitHub.</li>
           <li>Status: <strong>Baru</strong> → <strong>Proses</strong> → <strong>Selesai</strong> / <strong>Batal</strong>.</li>
-          <li>Pastikan <code>APPS_SCRIPT_URL</code> sudah diisi di <code>admin/admin.js</code> dan <code>js/app.js</code>.</li>
+          <li>Email admin juga dari Script Properties (<code>ADMIN_EMAIL</code>).</li>
         </ul>
         <a class="btn btn-outline" href="https://docs.google.com/spreadsheets/" target="_blank" rel="noopener" style="margin-top:12px">Buka Google Sheets</a>
       </div>
