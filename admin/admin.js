@@ -9,6 +9,7 @@
   const PASS = 'myrep2026';
   const ADMIN_EMAILS = [
     'admin@silverhawk.web.id',
+    'admin.silverhawk.web.id',
     'ted834r@gmail.com'
   ];
 
@@ -202,7 +203,7 @@
       await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'update', id: id, status: status })
       });
       // no-cors: tidak bisa baca response, tapi biasanya berhasil

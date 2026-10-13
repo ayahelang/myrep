@@ -17,6 +17,7 @@
 
   const ADMIN_EMAILS = [
     'admin@silverhawk.web.id',
+    'admin.silverhawk.web.id',
     'ted834r@gmail.com'
   ];
   const GOOGLE_CLIENT_ID = '';
@@ -139,7 +140,7 @@ Mohon diproses. Terima kasih!`
         await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
       } catch (err) { console.warn('Apps Script order error:', err); }
@@ -544,7 +545,7 @@ Mohon diproses. Terima kasih!`
           fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'visitor', sessionId: SESSION_ID, timestamp: new Date().toISOString() })
           }).catch(function () {});
         } catch (e) {}
