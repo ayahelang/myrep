@@ -17,7 +17,6 @@
 
   const ADMIN_EMAILS = [
     'admin@silverhawk.web.id',
-    'admin.silverhawk.web.id',
     'ted834r@gmail.com'
   ];
   const GOOGLE_CLIENT_ID = '';
