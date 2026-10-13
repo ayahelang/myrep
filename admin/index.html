@@ -54,6 +54,7 @@
       font-size: 0.9rem;
     }
     .btn:hover { opacity: 0.92; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-outline {
       background: transparent;
       border: 1.5px solid var(--border);
@@ -143,6 +144,7 @@
       gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 16px;
+      align-items: center;
     }
     .filter-bar button.active {
       background: linear-gradient(135deg, var(--purple), var(--blue));
@@ -171,9 +173,10 @@
       <div class="header-row">
         <div>
           <h1>📋 Panel Admin — Pesanan MyRepublic</h1>
-          <p class="subtitle" style="margin-bottom:0">Kelola pesanan pelanggan dari myrep.silverhawk.web.id</p>
+          <p class="subtitle" style="margin-bottom:0">Data tersimpan di Google Sheets (database gratis)</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline" id="refreshBtn">↻ Refresh</button>
           <a href="../" class="btn btn-outline">← Situs</a>
           <button class="btn btn-outline" id="logoutBtn">Keluar</button>
         </div>
@@ -193,6 +196,7 @@
           <button class="btn btn-outline btn-sm" data-filter="Baru">Belum Ditindaklanjuti</button>
           <button class="btn btn-outline btn-sm" data-filter="Proses">Proses</button>
           <button class="btn btn-outline btn-sm" data-filter="Selesai">Selesai</button>
+          <button class="btn btn-outline btn-sm" data-filter="Batal">Batal</button>
         </div>
         <div id="ordersTableWrap">
           <div class="empty" id="emptyState">Belum ada pesanan. Pesanan dari form akan muncul di sini.</div>
@@ -215,11 +219,12 @@
       <div class="card">
         <h2>Cara Kerja</h2>
         <ul>
-          <li>Pesanan dari form disimpan di <strong>localStorage</strong> browser (untuk preview admin) + dikirim ke WhatsApp.</li>
-          <li>Opsional: setup Google Sheets + Apps Script agar data tersimpan permanen & notifikasi email.</li>
-          <li>Ubah status pesanan di sini (Baru → Proses → Selesai).</li>
+          <li>Pesanan dari form langsung disimpan ke <strong>Google Sheets</strong> + dikirim ke WhatsApp + email notifikasi.</li>
+          <li>Panel ini membaca & mengubah status langsung dari Sheets (bisa dibuka dari device mana saja).</li>
+          <li>Status: <strong>Baru</strong> → <strong>Proses</strong> → <strong>Selesai</strong> / <strong>Batal</strong>.</li>
+          <li>Pastikan <code>APPS_SCRIPT_URL</code> sudah diisi di <code>admin/admin.js</code> dan <code>js/app.js</code>.</li>
         </ul>
-        <a class="btn btn-outline" href="https://docs.google.com/spreadsheets/" target="_blank" style="margin-top:12px">Buka Google Sheets</a>
+        <a class="btn btn-outline" href="https://docs.google.com/spreadsheets/" target="_blank" rel="noopener" style="margin-top:12px">Buka Google Sheets</a>
       </div>
     </div>
   </div>

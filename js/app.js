@@ -2,12 +2,19 @@
    MyRepublic Promo — app.js
    Brand: putih, ungu, biru + Google Login + Admin
    + Speed Test + Floating WA + Auto-scroll idle + Visitor stats
+   + Google Sheets / Apps Script as free database
 ========================================================= */
 (function () {
   'use strict';
 
   const WA_NUMBER = '6285159922358';
+
+  // ========== KONFIGURASI DATABASE (Google Sheets) ==========
+  // Paste URL Web App dari Google Apps Script di sini
+  // (sama dengan yang di admin/admin.js)
   const APPS_SCRIPT_URL = '';
+  // ==========================================================
+
   const ADMIN_EMAILS = [
     'admin@silverhawk.web.id',
     'admin.silverhawk.web.id',
@@ -117,16 +124,28 @@ Mohon diproses. Terima kasih!`
       showToast('Mohon lengkapi data yang wajib diisi');
       return;
     }
+    // Simpan lokal sebagai fallback
     saveOrder(formData);
+
+    // Kirim ke Google Sheets via Apps Script
     if (APPS_SCRIPT_URL) {
       try {
+        const payload = {
+          action: 'order',
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+          timestamp: new Date().toISOString(),
+          source: 'myrep.silverhawk.web.id',
+          ...formData
+        };
         await fetch(APPS_SCRIPT_URL, {
-          method: 'POST', mode: 'no-cors',
+          method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, timestamp: new Date().toISOString(), source: 'myrep.silverhawk.web.id' })
+          body: JSON.stringify(payload)
         });
-      } catch (err) { console.warn(err); }
+      } catch (err) { console.warn('Apps Script order error:', err); }
     }
+
     window.open(`https://wa.me/${WA_NUMBER}?text=${buildWaMessage(formData)}`, '_blank');
     showToast('Pesanan tersimpan & mengarahkan ke WhatsApp...');
     form.reset();
@@ -452,7 +471,7 @@ Mohon diproses. Terima kasih!`
     });
   }
 
-  // ---------- Visitor Stats (localStorage + session presence) ----------
+  // ---------- Visitor Stats (localStorage UI + Google Sheets backend) ----------
   function initVisitorStats() {
     const KEY = 'myrep_stats_v2';
     const ONLINE_KEY = 'myrep_online';
@@ -503,33 +522,62 @@ Mohon diproses. Terima kasih!`
     if (stats.monthKey !== m) { stats.month = 0; stats.monthKey = m; }
     if (stats.yearKey !== y) { stats.year = 0; stats.yearKey = y; }
 
-    // Ensure hierarchy: total >= year >= month >= week >= day
     stats.total = stats.total || 0;
     stats.year = Math.max(stats.year || 0, stats.month || 0, stats.week || 0, stats.day || 0);
     stats.total = Math.max(stats.total, stats.year);
 
     const visitKey = 'visited_' + t;
-    if (!sessionStorage.getItem(visitKey)) {
+    const isNewVisit = !sessionStorage.getItem(visitKey);
+    if (isNewVisit) {
       stats.day = (stats.day || 0) + 1;
       stats.week = (stats.week || 0) + 1;
       stats.month = (stats.month || 0) + 1;
       stats.year = (stats.year || 0) + 1;
       stats.total = (stats.total || 0) + 1;
-      // keep hierarchy
       stats.year = Math.max(stats.year, stats.month);
       stats.total = Math.max(stats.total, stats.year);
       sessionStorage.setItem(visitKey, '1');
       localStorage.setItem(KEY, JSON.stringify(stats));
+
+      // Kirim 1x per session ke Google Sheets (database global)
+      if (APPS_SCRIPT_URL) {
+        try {
+          fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'visitor', sessionId: SESSION_ID, timestamp: new Date().toISOString() })
+          }).catch(function () {});
+        } catch (e) {}
+      }
     } else {
-      // Still persist hierarchy fixes
       localStorage.setItem(KEY, JSON.stringify(stats));
+    }
+
+    // Opsional: ambil stats global dari Sheets untuk ditampilkan (jika URL ada)
+    if (APPS_SCRIPT_URL) {
+      try {
+        const url = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.indexOf('?') >= 0 ? '&' : '?') + 'action=stats';
+        fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+          if (data && data.status === 'ok' && data.stats) {
+            const s = data.stats;
+            // Tampilkan angka global jika lebih besar (lebih akurat)
+            if (s.day > (stats.day || 0)) stats.day = s.day;
+            if (s.week > (stats.week || 0)) stats.week = s.week;
+            if (s.month > (stats.month || 0)) stats.month = s.month;
+            if (s.year > (stats.year || 0)) stats.year = s.year;
+            if (s.total > (stats.total || 0)) stats.total = s.total;
+            renderStats();
+          }
+        }).catch(function () {});
+      } catch (e) {}
     }
 
     function heartbeat() {
       let online = {};
       try { online = JSON.parse(localStorage.getItem(ONLINE_KEY) || '{}'); } catch {}
       const now = Date.now();
-      Object.keys(online).forEach(id => {
+      Object.keys(online).forEach(function (id) {
         if (now - online[id] > 45000) delete online[id];
       });
       online[SESSION_ID] = now;
@@ -546,7 +594,7 @@ Mohon diproses. Terima kasih!`
         fsYear: stats.year || 0,
         fsTotal: stats.total || 0
       };
-      Object.keys(map).forEach(id => {
+      Object.keys(map).forEach(function (id) {
         const el = document.getElementById(id);
         if (el) el.textContent = map[id];
       });
@@ -557,7 +605,7 @@ Mohon diproses. Terima kasih!`
     setInterval(heartbeat, 15000);
   }
 
-  // ---------- Auto-scroll: default idle 15–30s random; aggressive mode 5s ----------
+  // ---------- Auto-scroll  // ---------- Auto-scroll: default idle 15–30s random; aggressive mode 5s ----------
   function initAutoScroll() {
     let idleTimer = null;
     let scrolling = false;

@@ -1,6 +1,11 @@
 (function () {
   'use strict';
 
+  // ========== KONFIGURASI ==========
+  // Paste URL Web App dari Google Apps Script di sini (sama dengan js/app.js)
+  const APPS_SCRIPT_URL = '';
+  // =================================
+
   const PASS = 'myrep2026';
   const ADMIN_EMAILS = [
     'admin@silverhawk.web.id',
@@ -15,6 +20,8 @@
   const logoutBtn = document.getElementById('logoutBtn');
 
   let currentFilter = 'all';
+  let allOrders = [];
+  let loading = false;
 
   function isAdminFromSession() {
     try {
@@ -29,20 +36,8 @@
     if (isAdminFromSession()) {
       loginScreen.classList.add('hidden');
       dashboard.classList.remove('hidden');
-      renderOrders();
+      loadOrders();
     }
-  }
-
-  function getOrders() {
-    try {
-      return JSON.parse(localStorage.getItem('myrep_orders') || '[]');
-    } catch {
-      return [];
-    }
-  }
-
-  function saveOrders(orders) {
-    localStorage.setItem('myrep_orders', JSON.stringify(orders));
   }
 
   function formatTime(iso) {
@@ -67,28 +62,82 @@
     return map[s] || 'status-baru';
   }
 
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str == null ? '' : String(str);
+    return d.innerHTML;
+  }
+
+  // ---------- Load from Google Sheets via Apps Script ----------
+  async function loadOrders() {
+    if (!APPS_SCRIPT_URL) {
+      // Fallback ke localStorage jika belum setup
+      try {
+        allOrders = JSON.parse(localStorage.getItem('myrep_orders') || '[]');
+      } catch {
+        allOrders = [];
+      }
+      renderOrders();
+      showSetupWarning();
+      return;
+    }
+
+    loading = true;
+    const empty = document.getElementById('emptyState');
+    if (empty) empty.textContent = 'Memuat pesanan dari Google Sheets…';
+
+    try {
+      const url = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + 'action=list';
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status === 'ok' && Array.isArray(data.orders)) {
+        allOrders = data.orders;
+      } else {
+        allOrders = [];
+        console.warn('Unexpected response', data);
+      }
+    } catch (err) {
+      console.error('Gagal load orders:', err);
+      allOrders = [];
+      if (empty) empty.textContent = 'Gagal memuat data. Cek APPS_SCRIPT_URL & deployment.';
+    }
+    loading = false;
+    renderOrders();
+  }
+
+  function showSetupWarning() {
+    const card = document.querySelector('.card');
+    if (!card || document.getElementById('setupWarn')) return;
+    const warn = document.createElement('div');
+    warn.id = 'setupWarn';
+    warn.style.cssText = 'background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:0.9rem;color:#92400e';
+    warn.innerHTML = '<strong>⚠️ Belum terhubung ke Google Sheets.</strong><br>Isi <code>APPS_SCRIPT_URL</code> di <code>admin/admin.js</code> dan <code>js/app.js</code> setelah deploy Apps Script. Sementara menampilkan data localStorage (hanya di browser ini).';
+    card.parentNode.insertBefore(warn, card);
+  }
+
   function renderOrders() {
-    const orders = getOrders();
     const filtered = currentFilter === 'all'
-      ? orders
-      : orders.filter(o => o.status === currentFilter);
+      ? allOrders
+      : allOrders.filter(o => o.status === currentFilter);
 
     const body = document.getElementById('ordersBody');
     const table = document.getElementById('ordersTable');
     const empty = document.getElementById('emptyState');
 
     // Stats
-    document.getElementById('statTotal').textContent = orders.length;
-    document.getElementById('statBaru').textContent = orders.filter(o => o.status === 'Baru').length;
-    document.getElementById('statProses').textContent = orders.filter(o => o.status === 'Proses').length;
-    document.getElementById('statSelesai').textContent = orders.filter(o => o.status === 'Selesai').length;
+    document.getElementById('statTotal').textContent = allOrders.length;
+    document.getElementById('statBaru').textContent = allOrders.filter(o => o.status === 'Baru').length;
+    document.getElementById('statProses').textContent = allOrders.filter(o => o.status === 'Proses').length;
+    document.getElementById('statSelesai').textContent = allOrders.filter(o => o.status === 'Selesai').length;
 
     if (filtered.length === 0) {
       table.classList.add('hidden');
       empty.classList.remove('hidden');
-      empty.textContent = currentFilter === 'all'
-        ? 'Belum ada pesanan. Pesanan dari form akan muncul di sini.'
-        : 'Tidak ada pesanan dengan status ini.';
+      if (!loading) {
+        empty.textContent = currentFilter === 'all'
+          ? 'Belum ada pesanan. Pesanan dari form akan muncul di sini.'
+          : 'Tidak ada pesanan dengan status ini.';
+      }
       return;
     }
 
@@ -96,7 +145,7 @@
     table.classList.remove('hidden');
 
     body.innerHTML = filtered.map(o => `
-      <tr data-id="${o.id}">
+      <tr data-id="${escapeHtml(o.id)}">
         <td>${formatTime(o.timestamp)}</td>
         <td>
           <strong>${escapeHtml(o.name || '-')}</strong>
@@ -104,17 +153,17 @@
           ${o.address ? `<br><small style="color:#64748b;max-width:180px;display:inline-block">${escapeHtml(o.address).slice(0, 60)}${o.address.length > 60 ? '…' : ''}</small>` : ''}
         </td>
         <td>
-          <a href="https://wa.me/${(o.wa || '').replace(/\D/g, '').replace(/^0/, '62')}" target="_blank" style="color:#7C3AED;font-weight:600">
+          <a href="https://wa.me/${(o.wa || '').replace(/\D/g, '').replace(/^0/, '62')}" target="_blank" rel="noopener" style="color:#7C3AED;font-weight:600">
             ${escapeHtml(o.wa || '-')}
           </a>
         </td>
         <td>${escapeHtml(o.package || '-')}</td>
         <td><span class="status ${statusClass(o.status)}">${escapeHtml(o.status || 'Baru')}</span></td>
         <td style="white-space:nowrap">
-          ${o.status === 'Baru' ? `<button class="btn btn-sm btn-warn" data-action="proses" data-id="${o.id}">Proses</button>` : ''}
-          ${o.status === 'Proses' ? `<button class="btn btn-sm btn-success" data-action="selesai" data-id="${o.id}">Selesai</button>` : ''}
-          ${o.status !== 'Selesai' && o.status !== 'Batal' ? `<button class="btn btn-sm btn-outline" data-action="batal" data-id="${o.id}">Batal</button>` : ''}
-          ${o.status === 'Selesai' || o.status === 'Batal' ? `<button class="btn btn-sm btn-outline" data-action="baru" data-id="${o.id}">Reset</button>` : ''}
+          ${o.status === 'Baru' ? `<button class="btn btn-sm btn-warn" data-action="proses" data-id="${escapeHtml(o.id)}">Proses</button>` : ''}
+          ${o.status === 'Proses' ? `<button class="btn btn-sm btn-success" data-action="selesai" data-id="${escapeHtml(o.id)}">Selesai</button>` : ''}
+          ${o.status !== 'Selesai' && o.status !== 'Batal' ? `<button class="btn btn-sm btn-outline" data-action="batal" data-id="${escapeHtml(o.id)}">Batal</button>` : ''}
+          ${o.status === 'Selesai' || o.status === 'Batal' ? `<button class="btn btn-sm btn-outline" data-action="baru" data-id="${escapeHtml(o.id)}">Reset</button>` : ''}
         </td>
       </tr>
     `).join('');
@@ -129,19 +178,42 @@
     });
   }
 
-  function updateStatus(id, status) {
-    const orders = getOrders();
-    const idx = orders.findIndex(o => o.id === id);
-    if (idx === -1) return;
-    orders[idx].status = status;
-    saveOrders(orders);
-    renderOrders();
-  }
+  async function updateStatus(id, status) {
+    // Optimistic UI
+    const idx = allOrders.findIndex(o => o.id === id);
+    if (idx !== -1) {
+      allOrders[idx].status = status;
+      renderOrders();
+    }
 
-  function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
+    if (!APPS_SCRIPT_URL) {
+      // Fallback localStorage
+      try {
+        const orders = JSON.parse(localStorage.getItem('myrep_orders') || '[]');
+        const i = orders.findIndex(o => o.id === id);
+        if (i !== -1) {
+          orders[i].status = status;
+          localStorage.setItem('myrep_orders', JSON.stringify(orders));
+        }
+      } catch {}
+      return;
+    }
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', id: id, status: status })
+      });
+      // no-cors: tidak bisa baca response, tapi biasanya berhasil
+      // Reload setelah 1.2s untuk sync
+      setTimeout(loadOrders, 1200);
+    } catch (err) {
+      console.error('Update gagal:', err);
+      alert('Gagal update status. Coba refresh halaman.');
+      loadOrders();
+    }
   }
 
   // Filters
@@ -153,6 +225,19 @@
       renderOrders();
     });
   });
+
+  // Refresh button
+  const refreshBtn = document.getElementById('refreshBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = 'Memuat…';
+      loadOrders().finally(() => {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = '↻ Refresh';
+      });
+    });
+  }
 
   loginBtn.addEventListener('click', () => {
     if (passInput.value === PASS) {
