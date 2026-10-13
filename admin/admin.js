@@ -3,7 +3,7 @@
 
   // ========== KONFIGURASI ==========
   // Paste URL Web App dari Google Apps Script di sini (sama dengan js/app.js)
-  const APPS_SCRIPT_URL = '';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOUujHBYwDInWVrqKyVWhx-0lQOwADe1B_DjFxSiTzf_s-Iv_CDMU_BxsyYrqnd7gNvQ/exec';
   // =================================
 
   const PASS = 'myrep2026';

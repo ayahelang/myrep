@@ -12,7 +12,7 @@
   // ========== KONFIGURASI DATABASE (Google Sheets) ==========
   // Paste URL Web App dari Google Apps Script di sini
   // (sama dengan yang di admin/admin.js)
-  const APPS_SCRIPT_URL = '';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOUujHBYwDInWVrqKyVWhx-0lQOwADe1B_DjFxSiTzf_s-Iv_CDMU_BxsyYrqnd7gNvQ/exec';
   // ==========================================================
 
   const ADMIN_EMAILS = [
